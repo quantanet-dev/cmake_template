@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.31.0)
+
+project(
+    "cmake_template"
+    VERSION 0.0.1
+    DESCRIPTION "A CMake Template"
+    LANGUAGES C CXX
+)
+
+add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
+target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE cxx_std_23)
