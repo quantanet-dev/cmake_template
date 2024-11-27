@@ -6,15 +6,63 @@ set(C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 23)
 
 project(
-    cmake_template
+    Unify
     VERSION 0.0.1
-    DESCRIPTION "A CMake Template"
+    DESCRIPTION "A cross-platform Game Engine written in C++ with OpenGL/ Vulkan support"
     LANGUAGES C CXX
 )
 
+add_executable(${CMAKE_PROJECT_NAME}
+src/main.cpp
+src/core/core.cpp
+src/core/window.cpp
+src/core/vulkan/graphics_pipeline.cpp
+src/core/vulkan/graphics_device.cpp
+)
+
+# Copy Shader Files
+add_custom_command(TARGET ${CMAKE_PROJECT_NAME} PRE_BUILD
+COMMAND ${CMAKE_COMMAND} -E copy_directory
+${CMAKE_SOURCE_DIR}/src/shaders/ ${CMAKE_BINARY_DIR}/Debug/shaders/)
+
+# Setup GLAD
+
+set(GLAD_SOURCES_DIR "${PROJECT_SOURCE_DIR}/external/glad")
+add_subdirectory("${GLAD_SOURCES_DIR}/cmake" glad_cmake)
+
+# Specify GLAD settings
+glad_add_library(glad_gl_core_41 REPRODUCIBLE API gl:core=4.1)
+glad_add_library(glad_vulkan_13 REPRODUCIBLE LOADER API vulkan=1.3)
+
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC glad_gl_core_41 glad_vulkan_13)
+
+# Build GLFW version for current platform
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(AddGLFW)
 
-add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# Link GLFW to the executable
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE glfw)
+
+# Require VulkanSDK to be installed on local machine
+find_package(Vulkan REQUIRED)
+
+# Require OpenGLSDK to be installed on local machine
+find_package(OpenGL REQUIRED)
+
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if (OPENGL_FOUND)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OpenGL::GL)
+endif()
+
+if (Vulkan_FOUND)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Vulkan::Vulkan)
+    if (APPLE)
+        target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Vulkan::MoltenVK)
+    endif()
+endif()
+
+if (WIN32)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE )
+endif()
+

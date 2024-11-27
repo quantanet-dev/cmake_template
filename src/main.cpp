@@ -1,8 +1,21 @@
-#include <Core/main.h>
-#include <GLFW/glfw3.h>
+#include <core/core.hpp>
+
+#include <iostream>
+#include <cstdlib>
+// #include <stdexcept>
 
 int main()
 {
-    std::cout << "Hello World!" << std::endl;
-    return 0;
+    unify::Core instance{};
+
+    try
+    {
+        instance.Run();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }
